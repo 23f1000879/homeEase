@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Professional</title>
+    <!-- Add Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <header class="bg-dark text-white py-3">
+        <div class="container">
+            <h1 class="h3">Professional Profile</h1>
+        </div>
+    </header>
+
+    <main class="container my-5">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">{{ professional.full_name }}</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Email:</strong> {{ professional.email }}</p>
+                <p><strong>Phone:</strong> {{ professional.phone_number }}</p>
+                <p><strong>City:</strong> {{ professional.city }}</p>
+                <p><strong>State:</strong> {{ professional.state }}</p>
+                <p><strong>Experience Years:</strong> {{ professional.experience_years }}</p>
+                <p><strong>Expertise Area:</strong> {{ professional.expertise_area }}</p>
+                <p><strong>Registration Date:</strong>{{ professional.registration_date }}</p>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Add Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5">Our Services</h1>
+    
+    <div class="row">
+        {% for service in services %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ service.service_name }}</h5>
+                    <p class="card-text">{{ service.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Starting from ₹{{ service.base_price }}</span>
+                        {% if session.get('user_type') == 'customer' %}
+                            <a href="{{ url_for('book_service', service_id=service.service_id) }}" class="btn btn-primary">Book Now</a>
+                        {% elif not session.get('user_type') %}
+                            <a href="{{ url_for('customer_login') }}" class="btn btn-outline-primary">Login to Book</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

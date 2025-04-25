@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Profile</title>
+    <!-- Add Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <header class="bg-dark text-white py-3">
+        <div class="container">
+            <h1 class="h3">Customer Profile</h1>
+            <nav>
+                <a href="{{ url_for('customer_dashboard') }}" class="text-white mr-3">Home</a>
+                <a href="{{ url_for('view_service_history') }}" class="text-white mr-3">Service History</a>
+                <a href="{{ url_for('customer_profile') }}" class="text-white mr-3">Profile</a>
+                <a href="{{ url_for('customer_logout') }}" class="text-white">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container my-5">
+        <h2>Your Profile</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="profile-details">
+                    <p><strong>Name:</strong> {{ customer.full_name }}</p>
+                    <p><strong>Email:</strong> {{ customer.email }}</p>
+                    <p><strong>Phone Number:</strong> {{ customer.phone_number }}</p>
+                    <p><strong>Address:</strong> {{ customer.address }}</p>
+                
+            <div class="col-md-6">
+                <div class="profile-actions">
+                    <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+    <!-- Add Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

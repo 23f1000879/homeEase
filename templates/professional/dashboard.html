@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Professional Dashboard</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('professional_services') }}" class="btn btn-primary">
+                <i class="fas fa-cog"></i> Manage Services
+            </a>
+            <a href="{{ url_for('professional_profile') }}" class="btn btn-info">
+                <i class="fas fa-user"></i> Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Bookings</h6>
+                            <h2 class="mt-2 mb-0">{{ service_requests|length }}</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Average Rating</h6>
+                            <h2 class="mt-2 mb-0">
+                                {% if professional.avg_rating %}
+                                    {{ "%.1f"|format(professional.avg_rating) }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </h2>
+                        </div>
+                        <i class="fas fa-star fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Services Offered</h6>
+                            <h2 class="mt-2 mb-0">{{ professional_services|length }}</h2>
+                        </div>
+                        <i class="fas fa-tools fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Pending Requests</h6>
+                            <h2 class="mt-2 mb-0">
+                                {{ service_requests|selectattr('status', 'equalto', 'Pending')|list|length }}
+                            </h2>
+                        </div>
+                        <i class="fas fa-clock fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Service Requests -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Service Requests</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="filterRequests('all')">All</button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="filterRequests('Pending')">Pending</button>
+                            <button class="btn btn-sm btn-outline-success" onclick="filterRequests('Completed')">Completed</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if service_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="requestsTable">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Service</th>
+                                    <th>Date & Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in service_requests %}
+                                <tr class="request-row" data-status="{{ request.status }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary text-white me-2">
+                                                {{ request.customer.full_name[:1] }}
+                                            </div>
+                                            <div>
+                                                {{ request.customer.full_name }}
+                                                <div class="small text-muted">{{ request.customer.phone }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{ request.service.service_name }}
+                                        {% if request.notes %}
+                                        <div class="small text-muted">
+                                            <i class="fas fa-comment"></i> Has notes
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ request.request_date.strftime('%Y-%m-%d') }}
+                                        <div class="small text-muted">
+                                            {{ request.request_time.strftime('%I:%M %p') }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if request.status == 'Completed' 
+                                            else 'primary' if request.status == 'Accepted'
+                                            else 'warning' if request.status == 'Pending' 
+                                            else 'danger' }}">
+                                            {{ request.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'Pending' %}
+                                            <button class="btn btn-sm btn-success mb-1" 
+                                                    onclick="updateStatus({{ request.request_id }}, 'Accepted')">
+                                                Accept
+                                            </button>
+                                            <button class="btn btn-sm btn-danger mb-1" 
+                                                    onclick="showRejectModal({{ request.request_id }})">
+                                                Reject
+                                            </button>
+                                        {% elif request.status == 'Accepted' %}
+                                            <button class="btn btn-sm btn-primary" 
+                                                    onclick="updateStatus({{ request.request_id }}, 'Completed')">
+                                                Complete
+                                            </button>
+                                        {% elif request.status == 'Completed' %}
+                                            {% if request.professional_rating %}
+                                                <div class="text-warning">
+                                                    {% for i in range(5) %}
+                                                        <i class="fas fa-star{{ '' if i < request.professional_rating[0].rating else '-regular' }}"></i>
+                                                    {% endfor %}
+                                                </div>
+                                                {% if request.professional_rating[0].review %}
+                                                    <div class="small text-muted mt-1">
+                                                        "{{ request.professional_rating[0].review }}"
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Awaiting rating</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No service requests yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Quick Stats</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Rating Overview -->
+                    <div class="mb-4">
+                        <h6>Rating Overview</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="text-warning me-2">
+                                {% for i in range(5) %}
+                                    <i class="fas fa-star{{ '' if professional.avg_rating and i < professional.avg_rating else '-regular' }}"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="text-muted">({{ professional.total_ratings }} reviews)</span>
+                        </div>
+                    </div>
+
+                    <!-- Request Status -->
+                    <div class="mb-4">
+                        <h6>Request Status Overview</h6>
+                        {% set completed = service_requests|selectattr('status', 'equalto', 'Completed')|list|length %}
+                        {% set pending = service_requests|selectattr('status', 'equalto', 'Pending')|list|length %}
+                        {% set accepted = service_requests|selectattr('status', 'equalto', 'Accepted')|list|length %}
+                        {% set total = service_requests|length %}
+                        
+                        <div class="progress mb-2" style="height: 10px;">
+                            {% if total > 0 %}
+                            <div class="progress-bar bg-success" style="width: {{ (completed/total*100)|round }}%" title="Completed"></div>
+                            <div class="progress-bar bg-primary" style="width: {{ (accepted/total*100)|round }}%" title="Accepted"></div>
+                            <div class="progress-bar bg-warning" style="width: {{ (pending/total*100)|round }}%" title="Pending"></div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Completed</span>
+                            <span class="text-success">{{ completed }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Accepted</span>
+                            <span class="text-primary">{{ accepted }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Pending</span>
+                            <span class="text-warning">{{ pending }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Recent Reviews -->
+                    <div>
+                        <h6>Recent Reviews</h6>
+                        {% set recent_ratings = professional_ratings[:3] %}
+                        {% if recent_ratings %}
+                            {% for rating in recent_ratings %}
+                            <div class="mb-3">
+                                <div class="text-warning">
+                                    {% for i in range(5) %}
+                                        <i class="fas fa-star{{ '' if i < rating.rating else '-regular' }}"></i>
+                                    {% endfor %}
+                                </div>
+                                {% if rating.review %}
+                                <p class="small text-muted mb-0 mt-1">
+                                    "{{ rating.review }}"
+                                </p>
+                                {% endif %}
+                                <small class="text-muted">
+                                    {{ rating.created_at.strftime('%Y-%m-%d') }}
+                                </small>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No reviews yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reject Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rejectForm">
+                    <input type="hidden" id="requestId">
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Rejection</label>
+                        <select class="form-select" id="rejectReason" required>
+                            <option value="">Select a reason...</option>
+                            <option value="schedule_conflict">Schedule Conflict</option>
+                            <option value="unavailable">Service Provider Unavailable</option>
+                            <option value="location">Location Not Serviceable</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Additional Comments</label>
+                        <textarea class="form-control" id="rejectComment" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="submitReject()">Reject Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 0.5rem;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 0.75rem;
+}
+
+.btn-group .btn {
+    border-radius: 0.25rem;
+    margin: 0 0.25rem;
+}
+</style>
+
+<script>
+function filterRequests(status) {
+    const rows = document.querySelectorAll('.request-row');
+    rows.forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function showRejectModal(requestId) {
+    document.getElementById('requestId').value = requestId;
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+
+function submitReject() {
+    const requestId = document.getElementById('requestId').value;
+    const reason = document.getElementById('rejectReason').value;
+    const comment = document.getElementById('rejectComment').value;
+    
+    if (!reason) {
+        alert('Please select a reason for rejection');
+        return;
+    }
+    
+    fetch(`/reject-request/${requestId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `reject_reason=${reason}&reject_comment=${comment}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error rejecting request');
+        }
+    });
+}
+
+function updateStatus(requestId, status) {
+    if (!confirm(`Are you sure you want to mark this request as ${status}?`)) {
+        return;
+    }
+    
+    fetch(`/professional/update-status/${requestId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `status=${status}`
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert(data.message);
+            // Reload the page to show updated status
+            window.location.reload();
+        } else {
+            alert(data.message || 'Error updating status');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating status. Please try again.');
+    });
+}
+</script>
+{% endblock %} 

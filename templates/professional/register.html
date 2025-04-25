@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">Professional Registration</h2>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="experience_years" class="form-label">Years of Experience</label>
+                            <input type="number" class="form-control" id="experience_years" name="experience_years" min="0" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Services Offered</label>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th>Base Price</th>
+                                            <th>Your Price</th>
+                                            <th>Offer</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for service in services %}
+                                        <tr>
+                                            <td>{{ service.service_name }}</td>
+                                            <td>${{ "%.2f"|format(service.base_price) }}</td>
+                                            <td>
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       name="prices" 
+                                                       step="0.01" 
+                                                       min="{{ service.base_price }}"
+                                                       disabled
+                                                       data-service-id="{{ service.service_id }}">
+                                            </td>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input type="checkbox" 
+                                                           class="form-check-input service-checkbox" 
+                                                           name="services" 
+                                                           value="{{ service.service_id }}"
+                                                           data-price-input="{{ service.service_id }}">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">Already have an account? <a href="{{ url_for('professional_login') }}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.service-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const priceInput = this.closest('tr').querySelector('input[name="prices"]');
+            priceInput.disabled = !this.checked;
+            if (!this.checked) {
+                priceInput.value = '';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %} 

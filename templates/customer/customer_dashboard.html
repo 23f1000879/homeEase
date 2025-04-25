@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4 animate-fade-in">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">Welcome Back!</h2>
+                            <p class="mb-0">Find and book the services you need</p>
+                        </div>
+                        <i class="fas fa-home fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form action="{{ url_for('customer_dashboard') }}" method="GET" class="row g-3 align-items-center">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" 
+                               name="search" 
+                               class="form-control form-control-lg" 
+                               placeholder="Search for services..." 
+                               value="{{ request.args.get('search', '') }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="row g-4">
+        {% for service in services %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">{{ service.service_name }}</h5>
+                            <div class="text-muted small">
+                                <i class="fas fa-tag me-1"></i>${{ service.base_price }}
+                            </div>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">
+                            <i class="fas fa-star me-1"></i>4.5
+                        </span>
+                    </div>
+                    
+                    <p class="card-text text-muted mb-3">{{ service.description }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('service_details', service_id=service.service_id) }}" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-info-circle me-1"></i>View Details
+                        </a>
+                        <div class="text-muted small">
+                            <i class="fas fa-clock me-1"></i>Available Now
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if not services %}
+        <div class="col-12">
+            <div class="alert alert-info text-center p-5">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <h4>No Services Found</h4>
+                <p class="mb-0">We couldn't find any services matching your search criteria.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body p-4">
+                    <h4 class="mb-4">Quick Actions</h4>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="{{ url_for('view_service_history') }}" 
+                               class="card text-decoration-none text-dark hover-card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-history fa-2x text-primary me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0">Service History</h6>
+                                            <small class="text-muted">View your past services</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{ url_for('customer_profile') }}" 
+                               class="card text-decoration-none text-dark hover-card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-cog fa-2x text-primary me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0">Profile Settings</h6>
+                                            <small class="text-muted">Update your information</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="#" class="card text-decoration-none text-dark hover-card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-headset fa-2x text-primary me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0">Support</h6>
+                                            <small class="text-muted">Get help when needed</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}
+

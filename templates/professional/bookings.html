@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Bookings</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Service</th>
+                    <th>Customer</th>
+                    <th>Date & Time</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if bookings %}
+                    {% for booking in bookings %}
+                        <tr>
+                            <td>{{ booking.request_id }}</td>
+                            <td>{{ booking.service.service_name }}</td>
+                            <td>{{ booking.customer.full_name }}</td>
+                            <td>{{ booking.service_datetime.strftime('%Y-%m-%d %H:%M') if booking.service_datetime }}</td>
+                            <td>{{ booking.service_location }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if booking.status == 'Completed' 
+                                                    else 'warning' if booking.status == 'Pending' 
+                                                    else 'info' if booking.status == 'Accepted'
+                                                    else 'danger' }}">
+                                    {{ booking.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if booking.status == 'Requested' %}
+                                    <form action="{{ url_for('accept_request', request_id=booking.request_id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                    </form>
+                                {% endif %}
+                                
+                                {% if booking.status == 'Accepted' %}
+                                    <form action="{{ url_for('close_request', request_id=booking.request_id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-primary">Mark Complete</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">No bookings found.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ url_for('professional_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %} 

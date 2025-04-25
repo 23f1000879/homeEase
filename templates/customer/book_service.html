@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Book Service</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ service.service_name }}</h5>
+            <p class="card-text">{{ service.description }}</p>
+            <p class="card-text"><strong>Base Price:</strong> ${{ "%.2f"|format(service.base_price) }}</p>
+            
+            {% if professionals %}
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="professional_id" class="form-label">Select Professional</label>
+                        <select class="form-control" id="professional_id" name="professional_id" required>
+                            <option value="">Choose a professional...</option>
+                            {% for professional in professionals %}
+                                {% set prof_service = professional_services.get((professional.professional_id, service.service_id)) %}
+                                {% if prof_service %}
+                                    <option value="{{ professional.professional_id }}">
+                                        {{ professional.full_name }} - 
+                                        ${{ "%.2f"|format(prof_service.price) }} -
+                                        Experience: {{ professional.experience_years }} years
+                                        {% if professional.avg_rating > 0 %}
+                                            - Rating: {{ "%.1f"|format(professional.avg_rating) }}/5 
+                                            ({{ professional.total_ratings }} reviews)
+                                        {% else %}
+                                            - No ratings yet
+                                        {% endif %}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="service_date" class="form-label">Select Date</label>
+                        <input type="date" class="form-control" id="service_date" name="service_date" 
+                               min="{{ today }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="service_time" class="form-label">Select Time</label>
+                        <select class="form-control" id="service_time" name="service_time" required>
+                            <option value="">Choose a time...</option>
+                            {% for hour in range(9, 18) %}
+                                {% for minute in [0, 30] %}
+                                    <option value="{{ '%02d:%02d'|format(hour, minute) }}">
+                                        {{ '%02d:%02d'|format(hour, minute) }}
+                                    </option>
+                                {% endfor %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Additional Notes (Optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Book Service</button>
+                </form>
+            {% else %}
+                <div class="alert alert-warning">
+                    No professionals are currently available for this service. Please try again later.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Set minimum date to today
+    document.addEventListener('DOMContentLoaded', function() {
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementById('service_date').min = today;
+    });
+</script>
+{% endblock %}
+{% endblock %} 

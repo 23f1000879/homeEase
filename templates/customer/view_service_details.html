@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4 animate-fade-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('customer_dashboard') }}" class="text-decoration-none"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+            <li class="breadcrumb-item active">Service Details</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Service Information -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="card-title mb-0">{{ service.service_name }}</h2>
+                        <span class="badge bg-primary rounded-pill px-3 py-2">
+                            <i class="fas fa-tag me-1"></i>${{ service.base_price }}
+                        </span>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">About This Service</h5>
+                        <p class="text-muted">{{ service.description }}</p>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-clock fa-2x text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Duration</h6>
+                                    <p class="mb-0 text-muted">2-3 hours</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-shield-alt fa-2x text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Warranty</h6>
+                                    <p class="mb-0 text-muted">30 days</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-tools fa-2x text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Equipment</h6>
+                                    <p class="mb-0 text-muted">Included</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-4">Book Service</h4>
+                    <form method="POST" id="serviceRequestForm">
+                        <!-- Professional Selection -->
+                        <div class="mb-4">
+                            <label for="professional_id" class="form-label">Select Professional</label>
+                            <select class="form-select form-select-lg" id="professional_id" name="professional_id" required>
+                                <option value="">Choose a professional...</option>
+                                {% for professional in professionals %}
+                                <div class="professional-option">
+                                    <option value="{{ professional.professional_id }}">
+                                        {{ professional.full_name }} - {{ professional.expertise_area }}
+                                    </option>
+                                </div>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Date Selection -->
+                        <div class="mb-4">
+                            <label for="service_date" class="form-label">Service Date</label>
+                            <input type="date" 
+                                   class="form-control form-control-lg" 
+                                   id="service_date" 
+                                   name="service_date" 
+                                   required 
+                                   min="{{ today }}">
+                        </div>
+
+                        <!-- Time Selection -->
+                        <div class="mb-4">
+                            <label for="service_time" class="form-label">Preferred Time</label>
+                            <input type="time" 
+                                   class="form-control form-control-lg" 
+                                   id="service_time" 
+                                   name="service_time" 
+                                   required>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="mb-4">
+                            <label for="service_location" class="form-label">Service Location</label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="service_location" 
+                                      name="service_location" 
+                                      rows="3" 
+                                      required 
+                                      placeholder="Please enter your complete address"></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calendar-check me-2"></i>Book Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="card mt-4 bg-light border-0">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Important Information
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>24/7 customer support
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>Verified professionals
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>Satisfaction guaranteed
+                        </li>
+                        <li>
+                            <i class="fas fa-check text-success me-2"></i>Easy rescheduling
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set minimum date to today
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('service_date').min = today;
+});
+
+// Form validation
+const form = document.getElementById('serviceRequestForm');
+form.addEventListener('submit', function(event) {
+    if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    form.classList.add('was-validated');
+});
+</script>
+
+<style>
+.form-control:focus, .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+</style>
+{% endblock %} 

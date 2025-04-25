@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Admin Dashboard</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin_services') }}" class="btn btn-primary">
+                <i class="fas fa-cog"></i> Manage Services
+            </a>
+            <a href="{{ url_for('admin_professionals') }}" class="btn btn-info">
+                <i class="fas fa-users"></i> Manage Professionals
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Customers</h6>
+                            <h2 class="mt-2 mb-0">{{ total_customers }}</h2>
+                        </div>
+                        <i class="fas fa-users fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Professionals</h6>
+                            <h2 class="mt-2 mb-0">{{ total_professionals }}</h2>
+                        </div>
+                        <i class="fas fa-user-tie fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Services</h6>
+                            <h2 class="mt-2 mb-0">{{ total_services }}</h2>
+                        </div>
+                        <i class="fas fa-tools fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Bookings</h6>
+                            <h2 class="mt-2 mb-0">{{ total_bookings }}</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Bookings -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Bookings</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="exportTableToCSV('bookings.csv')">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="bookingsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Professional</th>
+                                        <th>Service</th>
+                                        <th>Date & Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in recent_bookings %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle bg-primary text-white me-2">
+                                                    {{ booking.customer.full_name[:1] }}
+                                                </div>
+                                                <div>
+                                                    {{ booking.customer.full_name }}
+                                                    <div class="small text-muted">{{ booking.customer.email }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                {{ booking.professional.full_name }}
+                                                <div class="small text-muted">
+                                                    {% if booking.professional.avg_rating > 0 %}
+                                                        <span class="text-warning">
+                                                            <i class="fas fa-star"></i> 
+                                                            {{ "%.1f"|format(booking.professional.avg_rating) }}
+                                                        </span>
+                                                    {% else %}
+                                                        No ratings
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ booking.service.service_name }}</td>
+                                        <td>
+                                            {{ booking.request_date.strftime('%Y-%m-%d') }}
+                                            <div class="small text-muted">
+                                                {{ booking.request_time.strftime('%I:%M %p') }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if booking.status == 'Completed' 
+                                                else 'primary' if booking.status == 'Accepted'
+                                                else 'warning' if booking.status == 'Pending' 
+                                                else 'danger' }}">
+                                                {{ booking.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No bookings yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Quick Stats</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Pending Verifications -->
+                    <div class="mb-4">
+                        <h6>Pending Professional Verifications</h6>
+                        <div class="progress mb-2" style="height: 10px;">
+                            <div class="progress-bar bg-warning" style="width: {{ (pending_verifications/total_professionals*100) if total_professionals > 0 else 0 }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ pending_verifications }} professionals awaiting verification</small>
+                    </div>
+
+                    <!-- Booking Status -->
+                    <div class="mb-4">
+                        <h6>Booking Status Overview</h6>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Completed</span>
+                            <span class="text-success">{{ completed_bookings }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Pending</span>
+                            <span class="text-warning">{{ pending_bookings }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Cancelled</span>
+                            <span class="text-danger">{{ cancelled_bookings }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Top Services -->
+                    <div>
+                        <h6>Top Services</h6>
+                        {% for service in top_services %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>{{ service.service_name }}</span>
+                            <span class="badge bg-primary">{{ service.booking_count }} bookings</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 0.5rem;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 0.75rem;
+}
+</style>
+
+<script>
+function exportTableToCSV(filename) {
+    var csv = [];
+    var rows = document.getElementById("bookingsTable").rows;
+    
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll("td, th");
+        
+        for (var j = 0; j < cols.length; j++) {
+            row.push(cols[j].innerText.replace(/,/g, ';'));
+        }
+        
+        csv.push(row.join(","));        
+    }
+
+    var csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+    var downloadLink = document.createElement("a");
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+}
+</script>
+{% endblock %} 

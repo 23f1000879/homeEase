@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Your Services</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('update_professional_services') }}">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Base Price</th>
+                                <th>Your Price</th>
+                                <th>Offer Service</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in all_services %}
+                            <tr>
+                                <td>{{ service.service_name }}</td>
+                                <td>${{ "%.2f"|format(service.base_price) }}</td>
+                                <td>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           name="price" 
+                                           step="0.01" 
+                                           min="{{ service.base_price }}"
+                                           value="{{ current_services.get(service.service_id, '') }}"
+                                           {% if service.service_id not in current_services %} disabled {% endif %}>
+                                </td>
+                                <td>
+                                    <div class="form-check">
+                                        <input type="checkbox" 
+                                               class="form-check-input service-checkbox" 
+                                               name="service" 
+                                               value="{{ service.service_id }}"
+                                               data-price-input="price-{{ service.service_id }}"
+                                               {% if service.service_id in current_services %} checked {% endif %}>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <button type="submit" class="btn btn-primary">Update Services</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.service-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const priceInput = this.closest('tr').querySelector('input[name="price"]');
+            priceInput.disabled = !this.checked;
+            if (!this.checked) {
+                priceInput.value = '';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %} 

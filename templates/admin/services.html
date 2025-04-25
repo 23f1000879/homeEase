@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage Services</h2>
+        <a href="{{ url_for('add_service') }}" class="btn btn-primary">Add New Service</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Service Name</th>
+                            <th>Category</th>
+                            <th>Base Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.service_id }}</td>
+                            <td>{{ service.service_name }}</td>
+                            <td>{{ service.category }}</td>
+                            <td>${{ "%.2f"|format(service.base_price) }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if service.is_active else 'danger' }}">
+                                    {{ 'Active' if service.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('edit_service', service_id=service.service_id) }}" 
+                                   class="btn btn-sm btn-primary">Edit</a>
+                                <button onclick="confirmDelete({{ service.service_id }})" 
+                                        class="btn btn-sm btn-danger">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this service?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(serviceId) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = `/admin/services/delete/${serviceId}`;
+    modal.show();
+}
+</script>
+{% endblock %} 

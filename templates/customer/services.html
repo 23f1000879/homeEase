@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Available Services</h2>
+        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for service in services %}
+        <div class="col-md-4">
+            <div class="card h-100 service-card">
+                <div class="card-body">
+                    <div class="service-icon mb-3">
+                        <i class="fas 
+                            {% if 'cleaning' in service.service_name.lower() %}fa-broom
+                            {% elif 'plumbing' in service.service_name.lower() %}fa-wrench
+                            {% elif 'electrical' in service.service_name.lower() %}fa-bolt
+                            {% elif 'painting' in service.service_name.lower() %}fa-paint-roller
+                            {% elif 'gardening' in service.service_name.lower() %}fa-leaf
+                            {% else %}fa-tools{% endif %} 
+                            fa-2x text-primary">
+                        </i>
+                    </div>
+                    <h5 class="card-title text-center">{{ service.service_name }}</h5>
+                    <p class="card-text">{{ service.description }}</p>
+                    <div class="text-center">
+                        <p class="text-primary fw-bold">Starting from ${{ "%.2f"|format(service.base_price) }}</p>
+                        <a href="{{ url_for('book_service', service_id=service.service_id) }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-calendar-plus"></i> Book Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.service-card {
+    transition: transform 0.3s ease;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+}
+
+.service-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+</style>
+{% endblock %} 

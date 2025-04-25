@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Rate Professional</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Service Details</h5>
+            <p class="card-text">
+                <strong>Service:</strong> {{ service_request.service.service_name }}<br>
+                <strong>Professional:</strong> {{ service_request.professional.full_name }}<br>
+                <strong>Date:</strong> {{ service_request.request_date.strftime('%Y-%m-%d') }}<br>
+                <strong>Time:</strong> {{ service_request.request_time.strftime('%I:%M %p') }}
+            </p>
+            
+            <form method="POST" class="mt-4">
+                <div class="mb-3">
+                    <label class="form-label">Rating</label>
+                    <div class="rating">
+                        {% for i in range(5, 0, -1) %}
+                        <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" required>
+                        <label for="star{{ i }}">☆</label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="review" class="form-label">Review (Optional)</label>
+                    <textarea class="form-control" id="review" name="review" rows="3" 
+                              placeholder="Share your experience..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Submit Rating</button>
+                <a href="{{ url_for('customer_dashboard') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.rating input {
+    display: none;
+}
+
+.rating label {
+    font-size: 30px;
+    color: #ddd;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.rating input:checked ~ label,
+.rating label:hover,
+.rating label:hover ~ label {
+    color: #ffd700;
+}
+
+.rating input:checked + label:hover,
+.rating input:checked ~ label:hover,
+.rating input:checked ~ label:hover ~ label,
+.rating label:hover ~ input:checked ~ label {
+    color: #ffc107;
+}
+</style>
+{% endblock %} 

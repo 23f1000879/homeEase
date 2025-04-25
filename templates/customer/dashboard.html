@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Welcome, {{ customer.full_name }}</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('customer_services') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Book New Service
+            </a>
+            <a href="{{ url_for('customer_profile') }}" class="btn btn-info">
+                <i class="fas fa-user"></i> Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Bookings</h6>
+                            <h2 class="mt-2 mb-0">{{ service_requests|length }}</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Completed Services</h6>
+                            <h2 class="mt-2 mb-0">
+                                {{ service_requests|selectattr('status', 'equalto', 'Completed')|list|length }}
+                            </h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Active Bookings</h6>
+                            <h2 class="mt-2 mb-0">
+                                {{ service_requests|selectattr('status', 'equalto', 'Accepted')|list|length }}
+                            </h2>
+                        </div>
+                        <i class="fas fa-clock fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Pending Requests</h6>
+                            <h2 class="mt-2 mb-0">
+                                {{ service_requests|selectattr('status', 'equalto', 'Pending')|list|length }}
+                            </h2>
+                        </div>
+                        <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Service Requests -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">My Bookings</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="filterRequests('all')">All</button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="filterRequests('Pending')">Pending</button>
+                            <button class="btn btn-sm btn-outline-success" onclick="filterRequests('Completed')">Completed</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if service_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Professional</th>
+                                    <th>Date & Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in service_requests|sort(attribute='request_date', reverse=true) %}
+                                <tr class="request-row" data-status="{{ request.status }}">
+                                    <td>
+                                        <div>
+                                            <strong>{{ request.service.service_name }}</strong>
+                                            {% if request.notes %}
+                                            <div class="small text-muted">
+                                                <i class="fas fa-comment"></i> {{ request.notes }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary text-white me-2">
+                                                {{ request.professional.full_name[:1] }}
+                                            </div>
+                                            <div>
+                                                {{ request.professional.full_name }}
+                                                <div class="small text-muted">
+                                                    {% if request.professional.avg_rating %}
+                                                        <span class="text-warning">
+                                                            <i class="fas fa-star"></i> 
+                                                            {{ "%.1f"|format(request.professional.avg_rating) }}
+                                                        </span>
+                                                    {% else %}
+                                                        No ratings
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{ request.request_date.strftime('%Y-%m-%d') }}
+                                        <div class="small text-muted">
+                                            {{ request.request_time.strftime('%H:%M') }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if request.status == 'Completed' 
+                                            else 'primary' if request.status == 'Accepted'
+                                            else 'warning' if request.status == 'Pending' 
+                                            else 'danger' }}">
+                                            {{ request.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'Completed' and not request.professional_rating %}
+                                            <button class="btn btn-sm btn-warning" 
+                                                    onclick="showRatingModal({{ request.request_id }})">
+                                                <i class="fas fa-star"></i> Rate Service
+                                            </button>
+                                        {% elif request.professional_rating %}
+                                            <div class="text-warning">
+                                                {% for i in range(5) %}
+                                                    <i class="fas fa-star{{ '' if i < request.professional_rating[0].rating else '-regular' }}"></i>
+                                                {% endfor %}
+                                            </div>
+                                        {% elif request.status == 'Pending' %}
+                                            <button class="btn btn-sm btn-danger" 
+                                                    onclick="cancelRequest({{ request.request_id }})">
+                                                Cancel
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No bookings yet.</p>
+                            <a href="{{ url_for('customer_services') }}" class="btn btn-primary">
+                                Book Your First Service
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Service Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Booking Progress -->
+                    <div class="mb-4">
+                        <h6>Booking Status</h6>
+                        {% set completed = service_requests|selectattr('status', 'equalto', 'Completed')|list|length %}
+                        {% set pending = service_requests|selectattr('status', 'equalto', 'Pending')|list|length %}
+                        {% set accepted = service_requests|selectattr('status', 'equalto', 'Accepted')|list|length %}
+                        {% set total = service_requests|length %}
+                        
+                        <div class="progress mb-2" style="height: 10px;">
+                            {% if total > 0 %}
+                            <div class="progress-bar bg-success" style="width: {{ (completed/total*100)|round }}%" title="Completed"></div>
+                            <div class="progress-bar bg-primary" style="width: {{ (accepted/total*100)|round }}%" title="Accepted"></div>
+                            <div class="progress-bar bg-warning" style="width: {{ (pending/total*100)|round }}%" title="Pending"></div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>{{ total }} Total Bookings</span>
+                            <span>{{ completed }} Completed</span>
+                        </div>
+                    </div>
+
+                    <!-- Recent Services -->
+                    <div class="mb-4">
+                        <h6>Recent Services</h6>
+                        {% set recent_services = service_requests|selectattr('status', 'equalto', 'Completed')|list %}
+                        {% if recent_services %}
+                            {% for request in recent_services[:3] %}
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-circle bg-light text-primary">
+                                        <i class="fas fa-tools"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="fw-bold">{{ request.service.service_name }}</div>
+                                    <small class="text-muted">
+                                        {{ request.request_date.strftime('%Y-%m-%d') }}
+                                    </small>
+                                </div>
+                                {% if request.professional_rating %}
+                                <div class="text-warning ms-2">
+                                    <i class="fas fa-star"></i> 
+                                    {{ request.professional_rating[0].rating }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No completed services yet</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div>
+                        <h6>Quick Actions</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('customer_services') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus"></i> New Booking
+                            </a>
+                            <a href="{{ url_for('customer_profile') }}" class="btn btn-outline-info">
+                                <i class="fas fa-user-edit"></i> Update Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rating Modal -->
+<div class="modal fade" id="ratingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rate Professional</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="requestId" value="">
+                <input type="hidden" id="ratingValue" value="">
+                
+                <div class="mb-3">
+                    <label class="form-label">Rating</label>
+                    <div class="star-rating">
+                        <i class="far fa-star" data-rating="1"></i>
+                        <i class="far fa-star" data-rating="2"></i>
+                        <i class="far fa-star" data-rating="3"></i>
+                        <i class="far fa-star" data-rating="4"></i>
+                        <i class="far fa-star" data-rating="5"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="review" class="form-label">Review (Optional)</label>
+                    <textarea class="form-control" id="review" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitRating()">Submit Rating</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 0.5rem;
+}
+
+.star-rating i {
+    font-size: 1.5rem;
+    color: #ffc107;
+    cursor: pointer;
+    margin-right: 0.25rem;
+}
+
+.btn-group .btn {
+    border-radius: 0.25rem;
+    margin: 0 0.25rem;
+}
+</style>
+
+<script>
+// Filter requests
+function filterRequests(status) {
+    const rows = document.querySelectorAll('.request-row');
+    rows.forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Star rating functionality
+document.querySelectorAll('.star-rating i').forEach(star => {
+    star.addEventListener('mouseover', function() {
+        const rating = this.dataset.rating;
+        document.querySelectorAll('.star-rating i').forEach((s, index) => {
+            s.className = index < rating ? 'fas fa-star text-warning' : 'far fa-star';
+        });
+    });
+    
+    star.addEventListener('click', function() {
+        const rating = this.dataset.rating;
+        document.getElementById('ratingValue').value = rating;
+    });
+});
+
+document.querySelector('.star-rating').addEventListener('mouseout', function() {
+    const rating = document.getElementById('ratingValue').value;
+    document.querySelectorAll('.star-rating i').forEach((star, index) => {
+        star.className = index < rating ? 'fas fa-star text-warning' : 'far fa-star';
+    });
+});
+
+function showRatingModal(requestId) {
+    document.getElementById('requestId').value = requestId;
+    document.getElementById('ratingValue').value = '';
+    document.getElementById('review').value = '';
+    document.querySelectorAll('.star-rating i').forEach(star => {
+        star.className = 'far fa-star';
+    });
+    new bootstrap.Modal(document.getElementById('ratingModal')).show();
+}
+
+function submitRating() {
+    const requestId = document.getElementById('requestId').value;
+    const rating = document.getElementById('ratingValue').value;
+    const review = document.getElementById('review').value;
+    
+    if (!rating) {
+        alert('Please select a rating');
+        return;
+    }
+    
+    fetch(`/submit-rating/${requestId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `rating=${rating}&review=${review}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('ratingModal')).hide();
+            // Show success message
+            alert(data.message);
+            // Reload page to show updated rating
+            window.location.reload();
+        } else {
+            alert(data.message || 'Error submitting rating');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error submitting rating. Please try again.');
+    });
+}
+
+// Cancel request
+function cancelRequest(requestId) {
+    if (!confirm('Are you sure you want to cancel this request?')) {
+        return;
+    }
+    
+    fetch(`/cancel-request/${requestId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Error cancelling request');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error cancelling request. Please try again.');
+    });
+}
+</script>
+{% endblock %} 
